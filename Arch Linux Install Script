@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Set the hostname
+hostnamectl set-hostname king
+
+# Install Arch Linux
+pacstrap /mnt base
+
+# Generate fstab
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# Change root into the new system
+arch-chroot /mnt
+
+# Create a super user account named brodie
+useradd -m -G wheel -s /bin/bash brodie
+
+# Set the password for the new user
+echo "brodie:mastermind" | chpasswd
+
+# Exit chroot and reboot
+exit
+reboot
