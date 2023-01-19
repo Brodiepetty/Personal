@@ -1,23 +1,58 @@
 #!/bin/bash
 
+# Partition the disk
+fdisk /dev/sda <<EOF
+n
+p
+1
+
++100M
+n
+p
+2
+
++20G
+n
+p
+3
+
+w
+EOF
+
+# Create file system
+mkfs.ext4 /dev/sda1
+mkfs.ext4 /dev/sda2
+mkfs.ext4 /dev/sda3
+
+# Mount the partitions
+mount /dev/sda2 /mnt
+mkdir /mnt/{boot,home}
+mount /dev/sda1 /mnt/boot
+mount /dev/sda3 /mnt/home
+
 # Set the hostname
-hostnamectl set-hostname king
+echo "king" > /etc/hostname
 
 # Install Arch Linux
-pacstrap /mnt base
+pacstrap /mnt base base-devel linux linux-firmware
 
 # Generate fstab
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # Change root into the new system
-arch-chroot /mnt
-
+arch-chroot /mnt <<EOF
 # Create a super user account named brodie
 useradd -m -G wheel -s /bin/bash brodie
 
 # Set the password for the new user
 echo "brodie:mastermind" | chpasswd
 
+# Enable wheel group for sudo access
+echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
+
 # Exit chroot and reboot
 exit
+EOF
+
 reboot
+
